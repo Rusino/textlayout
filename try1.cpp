@@ -3,6 +3,7 @@
 // 2. Simple text with basic styling (API as simple as possible)
 // 3. Generated code (API does not have to be fancy, but rather cover all the
 // cases)
+// Would JSON format be good for javascript calling c++?
 namespace text {
 namespace layout {
 void try1() {
@@ -36,7 +37,7 @@ void try1() {
       .setFontStyle(SkFontStyle::BoldItalic());
   layout [0:5]
       .addForeground(SK_ColorYELLOW) // color ->paint
-      .addShadow(SK_ColorBLUE + 2)  // color ->shadow + int
+      .addShadow(SK_ColorBLUE + 2)   // color ->shadow + int
       .addDecoration(TextDecoration::kUnderline)
       .addDecorationStyle(TextDecorationStyle::kDouble)
       .addDecorationColor(SK_ColorLTGRAY)
@@ -61,8 +62,8 @@ void try1() {
                     .addDecoration(TextDecoration::kUnderline + 2.0f)
                     .setFontFamilies({"Monospace", "Color Emoji"});
   // Styles can intersect; the last one wins
-  layout [0:5].setStyle(style1);
-  layout [6:16].setStyle(style2);
+  layout.text(0 : 5).setStyle(style1);
+  layout.text(6 : 16).setStyle(style2);
 }
 
 void try2() {
@@ -76,6 +77,13 @@ void try2() {
                           "world optimisation");
   layout.measure();              // optional step
   layout.paint(0, 0, 100.0f, 3); // format, style and paint
+
+  // The shortest
+  MarkupTextLayout({"Roboto"},
+                   "<b><i>World</b></i> domination <u>is such an ugly "
+                   "phrase</u> - I prefer to call it "
+                   "world optimisation")
+      .paint(0, 0, 100.0f, 3);
 }
 
 void try3() {
@@ -98,38 +106,36 @@ void try3() {
   layout.measure();
   layout.paint(0, 0, 100.0f /*width*/, 3 /*maxLines*/);
 
+  auto style0 = TextStyle().addFontSize(50);
+  auto style1 = style0
+                    .addForeground(SK_ColorYELLOW) // color ->paint
+                    .addShadow(SK_ColorBLUE + 2)   // color ->shadow + int
+                    .addDecoration(TextDecoration::kUnderline)
+                    .addDecorationStyle(TextDecorationStyle::kDouble)
+                    .addDecorationColor(SK_ColorLTGRAY)
+                    .addDecorationMultiplier(2.0f)
+                    .setFontFamilies({"Google Sans", "Color Emoji"});
+  auto style2 = style0.addBackground(SK_ColorGRAY)
+                    .addShadow(SK_ColorBLUE + SkPoint(5, 5) + 2)
+                    .addDecoration(TextDecoration::kUnderline + 2.0f)
+                    .setFontFamilies({"Monospace", "Color Emoji"});
 
-    auto style0 = TextStyle().addFontSize(50);
-    auto style1 = style0
-        .addForeground(SK_ColorYELLOW) // color ->paint
-        .addShadow(SK_ColorBLUE + 2)   // color ->shadow + int
-        .addDecoration(TextDecoration::kUnderline)
-        .addDecorationStyle(TextDecorationStyle::kDouble)
-        .addDecorationColor(SK_ColorLTGRAY)
-        .addDecorationMultiplier(2.0f)
-        .setFontFamilies({"Google Sans", "Color Emoji"});
-    auto style2 = style0.addBackground(SK_ColorGRAY)
-        .addShadow(SK_ColorBLUE + SkPoint(5, 5) + 2)
-        .addDecoration(TextDecoration::kUnderline + 2.0f)
-        .setFontFamilies({"Monospace", "Color Emoji"});
+  layout.addText("World domination").setStyle(style1);
+  layout.addText(" is such an ugly phrase").setStyle(style2);
+  layout.addText(" - I prefer to call it world optimisation").setStyle(style0);
 
-    layout.addText("World domination").setStyle(style1);
-    layout.addText(" is such an ugly phrase").setStyle(style2);
-    layout.addText(" - I prefer to call it world optimisation").setStyle(style0);
+  layout.addText(style1, "World domination");
+  layout.addText(style2, " is such an ugly phrase");
+  layout.addText(style0, " - I prefer to call it world optimisation");
 
-
-    layout.addText(style1, "World domination");
-    layout.addText(style2, " is such an ugly phrase");
-    layout.addText(style0, " - I prefer to call it world optimisation");
-
-    layout << style1 << "World domination";
-    layout << style2 << " is such an ugly phrase";
-    layout << style0 << " - I prefer to call it world optimisation";
+  layout << style1 << "World domination";
+  layout << style2 << " is such an ugly phrase";
+  layout << style0 << " - I prefer to call it world optimisation";
 }
 
 void try4() {
   // Simplest layout possible
-  SimpleLayout::paint("...", {"Roboto"}, 100, 3, 0, 0);
+  SimpleLayout("...", {"Roboto"}).paint(100, 3, 0, 0);
 
   SimpleLayout layout("...", {"Roboto"});
   layout.paint(100, 3, 0, 0); // measure/style/draw
@@ -195,26 +201,25 @@ void try7() {
   layout.measure();              // optional step
   layout.paint(0, 0, 100.0f, 3); // format, style and paint
 
-
   // More manageable:
-    auto style0 = TextStyle().addFontSize(50);
-    auto style1 = style0
-        .addForeground(SK_ColorYELLOW) // color ->paint
-        .addShadow(SK_ColorBLUE + 2)   // color ->shadow + int
-        .addDecoration(TextDecoration::kUnderline)
-        .addDecorationStyle(TextDecorationStyle::kDouble)
-        .addDecorationColor(SK_ColorLTGRAY)
-        .addDecorationMultiplier(2.0f)
-        .setFontFamilies({"Google Sans", "Color Emoji"});
-    auto style2 = style0.addBackground(SK_ColorGRAY)
-        .addShadow(SK_ColorBLUE + SkPoint(5, 5) + 2)
-        .addDecoration(TextDecoration::kUnderline + 2.0f)
-        .setFontFamilies({"Monospace", "Color Emoji"});
+  auto style0 = TextStyle().addFontSize(50);
+  auto style1 = style0
+                    .addForeground(SK_ColorYELLOW) // color ->paint
+                    .addShadow(SK_ColorBLUE + 2)   // color ->shadow + int
+                    .addDecoration(TextDecoration::kUnderline)
+                    .addDecorationStyle(TextDecorationStyle::kDouble)
+                    .addDecorationColor(SK_ColorLTGRAY)
+                    .addDecorationMultiplier(2.0f)
+                    .setFontFamilies({"Google Sans", "Color Emoji"});
+  auto style2 = style0.addBackground(SK_ColorGRAY)
+                    .addShadow(SK_ColorBLUE + SkPoint(5, 5) + 2)
+                    .addDecoration(TextDecoration::kUnderline + 2.0f)
+                    .setFontFamilies({"Monospace", "Color Emoji"});
 
-    layout << style1 << first("World");
-    layout << style2 << last("World");
-    layout << style1 << select("optim");
-    layout << style2 << range(" I prefer ", "optimisation");
+  layout << style1 << first("World");
+  layout << style2 << last("World");
+  layout << style1 << select("optim");
+  layout << style2 << range(" I prefer ", "optimisation");
 }
 
 void try8() {
@@ -238,16 +243,47 @@ void try8() {
          << "call it World optimisation";
 }
 
-void try8() {
-  // Text is broken down and cannot be seen at once
+void try9() {
   TextLayout layout("World domination is such an ugly phrase - I prefer to "
                     "call it World optimisation");
-  layout [0:6]
+  layout.text(0, 6)
       .setFontFamilies({"Google Sans", "Color Emoji"})
       .setFontSize(50.0f);
-  layout [7:16]
+  layout.text(7, 16)
       .setFontFamilies({"Monospace", "Color Emoji"})
       .setFontStyle(SkFontStyle::BoldItalic());
+}
+
+void try10() {
+  // JSON-like style (too many curly braces)
+  TextLayout layout("World domination is such an ugly phrase - I prefer to "
+                    "call it World optimisation");
+
+  layout.text(0, 20) << {{"FontFamilies", {"Roboto", "Emoji", "Monospace"}},
+                         {"FontSize", 50f}};
+  layout.text(0, 10) << {
+      {"FontStyle", SkFontStyle::BoldItalic()},
+      {"Shadows" : {{"Shadow" : {"Color", SK_ColorBlack, "Blur" : 5f}}}},
+  };
+  layout.text(10, 20) << {
+      {"FontStyle", SkFontStyle::Bold()},
+      {"Shadows" : {{"Shadow" : {"Color", SK_ColorGray, "Blur" : 5f}}}},
+  };
+
+  auto style0 = {{"FontFamilies", {"Roboto", "Emoji", "Monospace"}},
+                 {"FontSize", 50f}};
+  auto style1 = {
+      {"FontStyle", SkFontStyle::BoldItalic()},
+      {"Shadows" : {{"Shadow" : {"Color", SK_ColorBlack, "Blur" : 5f}}}},
+  };
+  auto style2 = {
+      {"FontStyle", SkFontStyle::Bold()},
+      {"Shadows" : {{"Shadow" : {"Color", SK_ColorGray, "Blur" : 5f}}}},
+  };
+  layout.text(0, 20) << style0;
+  layout.text(0, 10) << style1;
+  layout.text(10, 20) << style2;
+};
 
 } // namespace layout
-} // namespace layout
+} // namespace text
