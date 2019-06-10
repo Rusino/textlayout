@@ -5,7 +5,7 @@
 namespace text {
 namespace layout {
 void try1() {
-    // Add random ranges with styles
+    // Styles defined by range (have to count and track ranges)
     RangeTextLayout layout(
             "World domination is such an ugly phrase - I prefer to call it world optimisation");
     layout.setEllipsis("\u2026");
@@ -22,10 +22,11 @@ void try1() {
             .addBackground(SK_ColorGRAY)
             .addShadow(TextShadow(SK_ColorBLUE, SkPoint(5, 5), 2));
     layout.measure();               // optional step
-    layout.paint(0, 0, 100.0f, 3);  // format, style and paint
+    layout.paint(0, 0, 100.0f, 3);  // (lazy) format, (lazy) style and paint
 }
 
 void try2() {
+    // Styles defined in the text (only good for limited marks)
     // Text with markup
     // One font or one list of fonts
     // <b>old <i>talic <u>nderline <s>trike <o>verline
@@ -38,7 +39,7 @@ void try2() {
 }
 
 void try3() {
-    // Add text with styles
+    // Styles defined by text (text is lost somewhere)
     StyleLayout layout;
     layout.setEllipsis("\u2026");
     layout.setFontFamilies({"Roboto"});
@@ -72,7 +73,7 @@ void try4() {
 }
 
 void try5() {
-    // Styles by range in order of appearance
+    // Styles defined by range in order of appearance (complex initialization list)
     RangeLayout layout(
             "World domination is such an ugly phrase - I prefer to call it world optimisation");
     layout.style({
@@ -84,11 +85,38 @@ void try5() {
 }
 
 void try6() {
+    // Styles defined by words (ICU word breaking is not obvious for punctuation)
     // Word breaking by ICU
     WordLayout layout(
             "World domination is such an ugly phrase - I prefer to call it world optimisation");
-    layout.style(1, 2, {SK_ColorRED, SK_ColorWHITE, {"Roboto", "Emoji"}});
-    layout.style(2, 5, {SkFontStyle::BoldItalic(), {"Monospace"}});
+    layout.styleWord(1, {SK_ColorRED, SK_ColorWHITE, {"Roboto", "Emoji"}});
+    layout.styleWords(2, 5, {SkFontStyle::BoldItalic(), {"Monospace"}});
+    layout.measure();               // optional step
+    layout.paint(0, 0, 100.0f, 3);  // format, style and paint
+}
+
+void try7() {
+    // Experiments
+    /*
+     * "{1}" "World" "{2}" " " "{3}" "domination" "{4}" " " "is such an ugly phrase - I prefer to call it world optimisation"
+     * "{1}World{2} {3}domination{4} is such an ugly phrase - I prefer to call it world optimisation"
+     *
+     *   "World domination is such an ugly phrase - I prefer to call it world optimisation"
+     *   "1    23         45                     6                                        "
+     */
+    WordLayout layout(
+        "World domination is such an ugly phrase - I prefer to call it world optimisation");
+    layout.select("World").setFontFamilies({"Google Sans", "Color Emoji"}).setFontSize(50.0f);
+    layout.select("World", 2)
+        .setFontFamilies({"Monospace", "Color Emoji"})
+        .setFontStyle(SkFontStyle::BoldItalic());
+    layout.select("ugly phrase")
+        .addForeground(SK_ColorYELLOW)
+        .addDecoration(
+            TextDecoration::kUnderline, TextDecorationStyle::kDouble, SK_ColorLTGRAY, 1.0f);
+    layout.range(" I prefer ")
+        .addBackground(SK_ColorGRAY)
+        .addShadow(TextShadow(SK_ColorBLUE, SkPoint(5, 5), 2));
     layout.measure();               // optional step
     layout.paint(0, 0, 100.0f, 3);  // format, style and paint
 }
